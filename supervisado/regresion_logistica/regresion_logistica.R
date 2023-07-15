@@ -21,7 +21,7 @@ df <- churn %>% mutate_if(is.ordered, factor, ordered = FALSE)
 # Create training (70%) and test (30%) sets for the 
 # rsample::attrition data.
 set.seed(123)  # for reproducibility
-churn_split <- initial_split(df, prop = .7, strata = "Attrition")
+churn_split <- df %>% initial_split(prop = .7, strata = "Attrition")
 churn_train <- training(churn_split)
 churn_test  <- testing(churn_split)
 
@@ -31,6 +31,14 @@ model2 <- glm(Attrition ~ OverTime, family = "binomial", data = churn_train)
 library(broom)
 tidy(model1)
 tidy(model2)
+
+# x = MonthlyIncome
+# ln(mu(x)/(1-mu(X))) = -0.886 - 0.000139 * x
+# mu(x)/(1-mu(X)) = exp(-0.886 - 0.000139 * x)
+# mu(x)/(1-mu(X)) = exp(-0.886) * exp(0.000139 * x)
+
+# mu(x)/(1-mu(X)) = 0.4122 * 0.99
+
 
 exp(coef(model1))
 exp(coef(model2))
