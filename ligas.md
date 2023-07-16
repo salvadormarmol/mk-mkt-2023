@@ -18,6 +18,7 @@
 - [Libro de aprendizaje profundo gratuito (MIT)](https://www.deeplearningbook.org/)
 - [Libro de aprendizaje por refuerzo (Alberta)](http://incompleteideas.net/book/the-book-2nd.html)
 - [Libro de aprendizaje de máquina interpretable](https://christophm.github.io/interpretable-ml-book/)
+- [Libro para ayudarte a aprender sobre modelos causales y métodos econométricos para el análisis de relaciones causales en investigaciones empíricas](http://assets.press.princeton.edu/chapters/s10363.pdf)
 
 ## Referencia
 - [Acordeón aprendizaje de máquina (Stanford)](https://stanford.edu/~shervine/teaching/cs-229/)

@@ -53,14 +53,17 @@ model3 <- glm(
 )
 
 tidy(model3)
+exp(coef(model3))
 
+# Cambie el nombre del método para que no generara el warning y si realizara las repeticiones
 set.seed(123)
 cv_model1 <- train(
   Attrition ~ MonthlyIncome, 
   data = churn_train, 
   method = "glm",
   family = "binomial",
-  trControl = trainControl(method = "cv", number = 10)
+  trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5) 
+  # si solo se quiere cv sin repeats se debe cambiar el method a cv y quitar el parámetro repeats 
 )
 
 set.seed(123)
@@ -69,7 +72,7 @@ cv_model2 <- train(
   data = churn_train, 
   method = "glm",
   family = "binomial",
-  trControl = trainControl(method = "cv", number = 10)
+  trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5)
 )
 
 set.seed(123)
@@ -78,8 +81,10 @@ cv_model3 <- train(
   data = churn_train, 
   method = "glm",
   family = "binomial",
-  trControl = trainControl(method = "cv", number = 10)
+  trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5)
 )
+
+# se cambiaron todos los entrenamientos para que fueran comparables y el resample no se quejara
 
 # extract out of sample performance measures
 summary(
@@ -92,16 +97,28 @@ summary(
   )
 )$statistics$Accuracy
 
+vip(cv_model3)
+
+summary(cv_model3)
 
 # predict class
 pred_class <- predict(cv_model3, churn_train)
 
 # create confusion matrix
-confusionMatrix(
+cm <- confusionMatrix(
   data = relevel(pred_class, ref = "Yes"), 
   reference = relevel(churn_train$Attrition, ref = "Yes")
 )
 
+cm$byClass["F1"]
+cm$byClass["Precision"]
+cm$byClass["Recall"]
+cm$overall['Accuracy']
+
+summary(churn_train$Attrition)
+
+#Vemos como están balanceadas las bases
+summary(churn_train$Attrition)/sum(summary(churn_train$Attrition))
 
 library(ROCR)
 
@@ -120,4 +137,17 @@ plot(perf1, col = "black", lty = 2)
 plot(perf2, add = TRUE, col = "blue")
 legend(0.8, 0.8, legend = c("cv_model1", "cv_model3"),
        col = c("black", "blue"), lty = 2:1, cex = 0.6)
+
+
+pred <- predict(model1, churn_test, type = "response")
+pred_obj <- prediction(pred, churn_test$Attrition)
+roc_obj <- performance(pred_obj, "tpr", "fpr")
+auc <- performance(pred_obj, "auc")@y.values[[1]]
+print(paste0("AUC modelo 1: ",auc))
+
+pred <- predict(model3, churn_test, type = "response")
+pred_obj <- prediction(pred, churn_test$Attrition)
+roc_obj <- performance(pred_obj, "tpr", "fpr")
+auc <- performance(pred_obj, "auc")@y.values[[1]]
+print(paste0("AUC modelo 3: ",auc))
 
