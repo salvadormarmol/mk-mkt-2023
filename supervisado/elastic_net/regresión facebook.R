@@ -47,7 +47,30 @@ old <- par(mfrow = c(2, 2))
 plot(reg)
 par(old)
 
-reg <- glm(Total_Conversion ~ age + gender + interest + Spent + Impressions, data=df, family = poisson)
+ggplot(data = df, mapping = aes(x = Spent, y = Total_Conversion)) +
+  geom_point() +
+  labs(x = "Inversión", y = "Conversiones", title = "Gráfica de dispersión de Conversines vs gasto") +
+  scale_y_log10()
+
+reg <- glm(Total_Conversion ~ Spent, data=df, family = poisson)
+summary(reg)
+
+old <- par(mfrow = c(2, 2))
+plot(reg)
+par(old)
+
+ggplot(data = df, mapping = aes(x = Spent, y = Total_Conversion)) +
+  geom_point() +
+  labs(x = "Inversión", y = "Conversiones", title = "Gráfica de dispersión de Conversoines vs gasto") +
+  geom_smooth(mapping = aes(x = Spent, y = Total_Conversion), method = "lm") +
+  scale_y_log10()
+
+ggplot(data = df, mapping = aes(x = Spent, y = Total_Conversion)) +
+  geom_point() +
+  labs(x = "Inversión", y = "Conversiones", title = "Gráfica de dispersión de Conversiones vs gasto") +
+  geom_smooth(mapping = aes(x = Spent, y = Total_Conversion), method = "glm", method.args = list(family = poisson)) 
+
+reg <- glm(Total_Conversion ~ age + gender + interest + Spent, data=df, family = poisson)
 summary(reg)
 
 old <- par(mfrow = c(2, 2))
@@ -74,13 +97,6 @@ old <- par(mfrow = c(2, 2))
 plot(reg)
 par(old)
 
-library(nortest)
-lillie.test(rnorm(100, mean = 5, sd = 3))
-lillie.test(runif(100, min = 2, max = 4))
-lillie.test(rnorm(100, mean = 0, sd = 1))
-shapiro.test(rnorm(100, mean = 0, sd = 1))
-shapiro.test(runif(100, min = 2, max = 4))
-
 df_new =  subset(df, select = -c(ad_id, xyz_campaign_id, fb_campaign_id, Approved_Conversion))
 
 modelo <- step(lm(Total_Conversion ~ ., data = df_new), direction = "backward")
@@ -96,7 +112,7 @@ df <- read.csv('data.csv')
 
 df <- df %>%  mutate(interest = factor(interest))
 
-df_new <- df %>% select(-c(ad_id, xyz_campaign_id, fb_campaign_id, Total_Conversion, Approved_Conversion))
+df_new <- df %>% select(-c(ad_id, xyz_campaign_id, fb_campaign_id, Total_Conversion, Approved_Conversion, Clicks, Impressions))
 X <- model.matrix(~ . - 1, data = df_new)
 y <- df %>% select(Total_Conversion) %>% as.matrix()
 
@@ -111,6 +127,9 @@ ridge_cv <- cv.glmnet(
 )
 plot(ridge_cv)
 
+library(corrplot)
+corrplot(cor(X), method="color")
+
 lambda_cv <- ridge_cv$lambda.min
 
 model_cv <-
@@ -119,9 +138,12 @@ model_cv <-
          alpha = 0,
          lambda = lambda_cv,
          standardize = TRUE)
+
 y_hat_cv <- predict(model_cv, X)
 ssr_cv <- t(y - y_hat_cv) %*% (y - y_hat_cv)
 rsq_ridge_cv <- cor(y, y_hat_cv) ^ 2
+
+
 
 res <-
   glmnet(X,
@@ -137,6 +159,8 @@ legend(
   legend = colnames(X),
   cex = .7
 )
+
+coef(model_cv)
 
 weights <- sapply(seq(ncol(X)), function(predictor) {
   uni_model <- lm(y ~ X[, predictor])
@@ -168,7 +192,13 @@ model_cv <-
          standardize = TRUE)
 y_hat_cv <- predict(model_cv, X)
 ssr_cv <- t(y - y_hat_cv) %*% (y - y_hat_cv)
+ssr_cv
+dim(X)[1]
+ssr_cv/dim(X)[1]
+sqrt(ssr_cv/dim(X)[1])
 rsq_lasso_cv <- cor(y, y_hat_cv) ^ 2
+
+coef(model_cv)
 
 res <-
   glmnet(X,

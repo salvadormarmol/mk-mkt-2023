@@ -2,9 +2,19 @@
 
 df <- read.csv('pesos_y_alturas_v1.csv')
 
+ggplot(data = df) +
+  geom_point(mapping = aes(x = Altura, y = Peso)) +
+  labs(x = "Altura", y = "Peso", title = "Gráfica de dispersión de Peso vs Altura")
+
+
 # obtiene regesión lineal
 lm.fit <- lm(Peso ~ Altura,
              data = df)
+
+old <- par(mfrow = c(2, 2))
+plot(lm.fit)
+par(old)
+
 
 lm.fit$coefficients
 lm.fit$residuals
